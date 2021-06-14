@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="jquery-3.3.1.min.js"></script>
+<script>
+
+	function clickClosure(patient){
+		return function() {
+			// Parametar product prosleđen u gornju funkciju će biti vidljiv u ovoj
+			// Ovo znači da je funkcija "zapamtila" za koji je proizvod vezana
+			$('tr.selected').removeClass('selected');
+			$(this).addClass('selected');
+		};
+	}
+
+	function addZadatakTr(zadatak) {
+		
+		let tr;
+		if(zadatak.bodovi < 25){
+			tr = $('<tr style="background-color:red" id="' + 'tr_' +  zadatak.brojZadatka + '"></tr>');
+		}
+		else{
+			tr = $('<tr id="' + 'tr_' +  zadatak.brojZadatka + '"></tr>');
+		}
+		//let tr = $('<tr></tr>');
+		//let tr = $('<tr id="' + 'tr_' +  patient.healthInsurance + '"></tr>');
+		let tdBrojZadatka = $('<td>' + zadatak.brojZadatka + '</td>');
+		let tdNaziv = $('<td>' + zadatak.naziv + '</td>');
+		let tdZaduzeni = $('<td>' + zadatak.zaduzeni + '</td>');
+		let tdBrojTelefona = $('<td>' + zadatak.brojTelefona + '</td>');
+		let tdTezinaZadatka = $('<td>' + zadatak.tezinaZadatka + '</td>');
+		let tdBodovi = $('<td>' + zadatak.bodovi + '</td>');
+		let tdOdradjen;
+		if(zadatak.odradjen == true){
+			tdOdradjen = $('<td>' + '<a href="" id="' + 'a_' +  zadatak.brojZadatka + '">  </a>' + '</td>');
+		}
+		else{
+			tdOdradjen = $('<td>' + '<a href="" id="' + 'a_' +  zadatak.brojZadatka + '"> Odradjen </a>' + '</td>');
+		}
+		//let tdTestPozitivan = $('<td>' + '<a href="" id="' + 'a_' +  patient.healthInsurance + '"> Test je pozitivan </a>' + '</td>');
+		//let tdDelete = $('<td>' + '<button id="' + 'btn_' +  product.id + '" class="btn_class"> Delete </button>' + '</td>');
+		//tdId.hide();
+		tr.append(tdBrojZadatka).append(tdNaziv).append(tdZaduzeni).append(tdBrojTelefona).append(tdTezinaZadatka).append(tdBodovi).append(tdOdradjen);
+		//tr.click(clickClosure(patient));
+		$('#tabela tbody').append(tr);
+	}
+
+	$(document).ready(function() {
+		//alert("nova stranica")
+		var selectedIdOdradi = '';
+		var filterMode = false;
+		
+		$.get({
+			url: 'rest/zadaci',
+			success: function(zadaci) {
+				for (let zadatak of zadaci) {
+					addZadatakTr(zadatak);
+				}
+			}
+		});
+		
+		$('#tabela').on('click', 'tr td a', function () {
+			selectedIdOdradi = $(this).closest("tr").find('td:eq(0)').text();
+			//alert(selectedIdDel);
+		  	
+			$.ajax({
+			    url: 'rest/zadaci/odradi?id=' + selectedIdOdradi,
+			    type: 'GET',
+			    contentType: 'application/json',
+			    success: function(result) {
+			    	//alert("uspeh")
+			    }
+			});
+		});
+		
+		$("form#formaPretraga").submit(function(event){
+			event.preventDefault();
+			let zadatakPretraga = $('input[name="zadatakPretraga"]').val();
+			filterMode=true;
+			
+			$.ajax({
+			    url: 'rest/zadaci/filter?id=' + zadatakPretraga,
+			    type: 'GET',
+			    contentType: 'application/json',
+			    success: function(result) {
+			    	$.get({
+						url: 'rest/zadaci/filteredZadaci',
+						success: function(zadaci) {
+							if(zadaci.length == 0){
+								$('#error').text('Ne postoji zadatak za koji je zaduzena osoba sa unetim imenom.');
+								$("#error").show().delay(3000).fadeOut();
+							}
+							else{
+								$("#tabela tbody").empty();
+								for (let zadatak of zadaci) {
+									addZadatakTr(zadatak);
+								}
+							}
+							
+						}
+					});
+			    }
+			});
+		});
+	});
+</script>
+</head>
+<body>
+	<h1 style="color:red"> REST. Pregled zadataka</h1>
+	<p id="error" hidden="true" style="color:red"></p>
+	<table border="1" id="tabela">
+			<thead>
+				<tr bgcolor="lightgrey">
+					<th>Broj zadatka</th>
+					<th>Naziv</th>
+					<th>Zaduzeni</th>
+					<th>Broj telefona</th>
+					<th>Tezina zadatka</th>
+					<th>Bodovi</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+		<p><h2 style="color:grey"> Pretraga zadatka </h2></p>
+		<form id="formaPretraga">
+			<table id="pretraga">
+				<tr>
+					<td> Unesite ime osobe koja je zaduzena za obavljanje zadatka </td>
+					<td> <input type="text" name="zadatakPretraga"></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td> <input type="submit" value="Pretrazi"></td>
+				</tr>
+			</table>
+		</form>
+</body>
+</html>

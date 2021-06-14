@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <title> Kreiranje zadatka </title>
+        <meta charset="UTF-8">
+        <script src="jquery-3.3.1.min.js"></script>
+        <script>
+        $(document).ready(function() {
+        	$("form#forma").submit(function(event){
+    			event.preventDefault();
+    			let brojZadatka = $('input[name="brojZadatka"]').val();
+    			let naziv = $('input[name="naziv"]').val();
+    			let zaduzeni = $('input[name="zaduzeni"]').val();
+    			let brojTelefona = $('input[name="brojTelefona"]').val();
+    			let tezinaZadatka = $('#tezinaZadatka option:selected').val()
+    			let bodovi = $('input[name="bodovi"]').val();
+    			
+    			var re = new RegExp("^[0-9]{4}\\/[0-9]{2}$");
+    			if(!re.test(brojZadatka)) {
+    				$('#error').text('Broj zadatka je oblika 0000/00');
+    				$("#error").show().delay(3000).fadeOut();
+    				return;
+    	        }
+    			if(!naziv) {
+    				$('#error').text('Naziv ne sme biti prazan.');
+    				$("#error").show().delay(3000).fadeOut();
+    				return;
+    	        }
+    			if(!zaduzeni) {
+    				$('#error').text('Zaduzeni ne sme biti prazan.');
+    				$("#error").show().delay(3000).fadeOut();
+    				return;
+    	        }
+    			if(!brojTelefona) {
+    				$('#error').text('Broj telefona ne sme biti prazan.');
+    				$("#error").show().delay(3000).fadeOut();
+    				return;
+    	        }
+    			$('p#error').hide();
+    			
+    			/*
+    				Gender polEnum;
+    		        if(polString.charAt(0) == 'M')
+    		        	polEnum = Gender.MUSKI;
+    		        else
+    		        	polEnum = Gender.ZENSKI;
+    		        
+    		        HealthStatus hsEnum;
+    		        if(statusString.charAt(0) == 'B')
+    		        	hsEnum = HealthStatus.BEZ_SIMPTOMA;
+    		        else if(statusString.charAt(0) == 'S')
+    		        	hsEnum = HealthStatus.SA_SIMPTOMIMA;
+    		        else if(statusString.charAt(0) == 'Z')
+    		        	hsEnum = HealthStatus.ZARAZEN;
+    		        else
+    		        	hsEnum = HealthStatus.IZLECEN;
+    			*/
+    			
+    			let tezinaEnum = 0;
+    			if(tezinaZadatka.charAt(0) == 'L')
+    				tezinaEnum = 0;
+    	        else
+    	        	polEnum = 1;
+    			
+    			let bodoviInt = parseInt(bodovi);
+    			if(!bodoviInt) {
+    				$('#error').text('Bodovi su celobrojni.');
+    				$("#error").show().delay(3000).fadeOut();
+    				return;
+    	        }
+    			
+    			
+    			let zadatak = {brojZadatka:brojZadatka, naziv:naziv, zaduzeni:zaduzeni, brojTelefona:brojTelefona, tezinaZadatka:tezinaEnum, bodovi:bodoviInt, odradjen:false}
+    			
+    			$.ajax({
+    			    url: 'rest/zadaci/dodaj',
+    			    type: 'POST',
+    			    data: JSON.stringify(zadatak),
+    			    contentType: 'application/json',
+    			    success: function(result) {
+    					if(result == null){
+    						$('#error').text('Zadatak vec postoji.');
+    	    				$("#error").show().delay(3000).fadeOut();
+    					}
+    					else{
+    						window.location.href = 'zadaci.html'
+    					}
+    			    	
+    			    }
+    			});
+    		});
+        });
+        </script>
+    </head>
+    <body>
+        <h1> REST. Kreiranje zadatka </h1>
+        <form id="forma">
+            <table>
+                <tr>
+                    <td>
+                        Broj zadatka(id):
+                    </td>
+                    <td>
+                        <input type="text" id="brojZadatka" name="brojZadatka">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Naziv:
+                    </td>
+                    <td>
+                        <input type="text" id="naziv" name="naziv">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Zaduženi:
+                    </td>
+                    <td>
+                        <input type="text" id="zaduzeni" name="zaduzeni">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Broj telefona:
+                    </td>
+                    <td>
+                        <input type="text" id="brojTelefona" name="brojTelefona">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label> Težina zadatka: </label>
+                    </td>
+                    <td>
+                        <select id="tezinaZadatka" name="tezinaZadatka">
+                            <option value="LAK"> Lak </option>
+                            <option value="TEZAK"> Težak </option>
+                        </select> <br>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Bodovi:
+                    </td>
+                    <td>
+                        <input type="text" id="bodovi" name="bodovi">
+                    </td>
+                </tr>
+                
+                <tr>
+                    <td align="right">Http:</td>
+                    <td>
+                        <input type="submit" value="Posalji">
+                    </td>
+                </tr>
+            </table>
+
+          </form>
+
+          <p id="error" hidden="true" style="color:red"></p>
+			<p id="success" hidden="true" style="color:green"></p>
+    </body>
+</html>
